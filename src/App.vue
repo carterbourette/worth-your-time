@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <section class="container">
+        <section class="section container">
             <div class="columns is-centered">
                 <div class="column is-6">
                     <h1 class="title is-3">Worth your time?</h1>
@@ -24,23 +24,37 @@
                 </div>
             </div>
             <div class="columns">
-                <div class="column is-full">
-
-                    <h4 class="subtitle is-6">How often you do the task over how long it takes</h4>
-
-                    <table class="table" style="margin:0 auto;">
-                        <tr>
-                            <th></th>
-                            <th v-for="y in get_y()">{{y.label}}</th>
-                        </tr>
-                        <tr v-for="(row, index) in table_data">
-                            <th>{{get_x()[index].label}}</th>
-                            <td v-for="col in row">{{col.label}}</td>
-                        </tr>
-                    </table>
+                <div class="column is-8 is-offset-2">
+                    <div class="table-container">
+                        <table class="table is-striped is-fullwidth">
+                            <tr>
+                                <td rowspan="10" class="has-text-centered" style="position:relative; min-width:2rem;">
+                                    <div class="label vertical">
+                                        How long it takes you
+                                    </div>
+                                </td>
+                                <td colspan="7" class="has-text-centered">
+                                    <div class="label">
+                                        How often you do the task
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th />
+                                <th v-for="y in this.y" v-html="y.label" />
+                            </tr>
+                            <tr v-for="(row, index) in table_data">
+                                <th v-html="x[index].label" />
+                                <td v-for="col in row" v-html="col.label" />
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
+        <footer class="footer">
+            <small>Relevant xkcd: <a href="https://xkcd.com/1205/">Is It Worth the Time?</a></small>
+        </footer>
     </div>
 </template>
 
@@ -49,30 +63,16 @@ export default {
     data() {
         return {
             table_data: [],
-            years: 5
-        }
-    },
-    mounted(){
-        this.table()
-    },
-    watch: {
-        years() {
-            this.table()
-        }
-    },
-    methods: {
-        get_y() {
-            return [
-                { label: '50/day', per_year: this.years * 365 * 50 },
-                { label: '5/day',  per_year: this.years * 365 * 5 },
-                { label: 'Daily',  per_year: this.years * 365 },
-                { label: 'Weekly', per_year: this.years * 52 },
-                { label: 'Monthly',per_year: this.years * 12 },
-                { label: 'Yearly', per_year: this.years * 1 }
-            ]
-        },
-        get_x() {
-            return [
+            years: null,
+            y: [
+                { label: '50/day', per_year: 365 * 50 },
+                { label: '5/day',  per_year: 365 * 5 },
+                { label: 'Daily',  per_year: 365 },
+                { label: 'Weekly', per_year: 52 },
+                { label: 'Monthly',per_year: 12 },
+                { label: 'Yearly', per_year: 1 }
+            ],
+            x: [
                 { label: '1 second',   seconds: 1 },
                 { label: '5 seconds',  seconds: 5 },
                 { label: '30 seconds', seconds: 30 },
@@ -82,7 +82,21 @@ export default {
                 { label: '6 hours',    seconds: 60 * 60 * 6 },
                 { label: '1 day',      seconds: 60 * 60 * 24 }
             ]
-        },
+        }
+    },
+    mounted(){
+        let local_period = window.localStorage.getItem('time_period')
+
+        this.years = local_period ? local_period : 5
+    },
+    watch: {
+        years(val) {
+            window.localStorage.setItem('time_period', val)
+
+            this.table()
+        }
+    },
+    methods: {
         friendly_time(seconds) {
             if (typeof seconds === 'string' || seconds instanceof String)
                 return seconds
@@ -96,20 +110,18 @@ export default {
             if(seconds < 60 * 60 * 24 * 7)
                 return Math.floor(seconds/60 / 60 / 24)  + ' d'
             if(seconds < 60 * 60 * 24 * 30)
-                return Math.floor(seconds/60 / 60 / 24 / 7)  + ' wks'
+                return Math.floor(seconds/60 / 60 / 24 / 7)  + ' wk'
             if(seconds < 60 * 60 * 24 * 365)
                 return Math.floor(seconds/60 / 60 / 24 / 30)  + ' mn'
             return Math.floor(seconds/60 / 60 / 24 / 365) + ' yr'
         },
         table() {
-            let x = this.get_x(), y = this.get_y()
-
             this.table_data = []
-            for(let task_length of x) {
+            for(let task_length of this.x) {
                 let row = []
 
-                for(let task_occurances of y) {
-                    let task_seconds = task_length.seconds * task_occurances.per_year
+                for(let task_occurances of this.y) {
+                    let task_seconds = task_length.seconds * task_occurances.per_year * this.years
 
                     if(task_length.seconds * task_occurances.per_year > (60 * 60 * 24 * 365))
                         task_seconds = 'n/a'
@@ -136,5 +148,22 @@ export default {
     text-align: center;
     color: #2c3e50;
     margin-top: 60px;
+}
+
+td, th {
+    white-space: nowrap;
+}
+
+.label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.vertical {
+    white-space: nowrap;
+    position: absolute;
+    top: 50%;
+    margin: 0 0 0 -4rem;
+    transform: rotate(-90deg);
 }
 </style>

@@ -28,7 +28,7 @@
                     <div class="table-container">
                         <table class="table is-striped is-fullwidth">
                             <tr>
-                                <td rowspan="10" class="has-text-centered" style="position:relative; min-width:2rem;">
+                                <td rowspan="10" class="has-text-centered" style="position:relative; min-width:2rem; border-bottom: 0;">
                                     <div class="label vertical">
                                         How long it takes you
                                     </div>
